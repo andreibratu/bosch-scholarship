@@ -1,0 +1,12 @@
+pciBusID: 0000:02:00.0
+2020-04-17 14:23:07.836393: I tensorflow/stream_executor/platform/default/dlopen_checker_stub.cc:25] GPU libraries are statically linked, skip dlopen check.
+2020-04-17 14:23:07.841012: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1763] Adding visible gpu devices: 0
+2020-04-17 14:23:07.843503: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1181] Device interconnect StreamExecutor with strength 1 edge matrix:
+2020-04-17 14:23:07.847378: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1187]      0
+2020-04-17 14:23:07.850160: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1200] 0:   N
+2020-04-17 14:23:07.853240: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1326] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 1364 MB memory) -> physical GPU (device: 0, name: GeForce MX230, pci bus id: 0000:02:00.0, compute capability: 6.1)
+WARNING:tensorflow:From C:\Users\bratu\anaconda3\envs\bosch\lib\site-packages\tensorflow\contrib\predictor\saved_model_predictor.py:153: load (from tensorflow.python.saved_model.loader_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+This function will only be available through the v1 compatibility library as tf.compat.v1.saved_model.loader.load or tf.compat.v1.saved_model.load. There will be a new function for importing SavedModels in Tensorflow 2.0.
+acoustic DONE
+DONE 102.0112

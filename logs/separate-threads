@@ -1,0 +1,70 @@
+alhost/replica:0/task:0/device:GPU:0 with 1364 MB memory) -> physical GPU (device: 0, name: GeForce MX230, pci bus id: 0000:02:00.0, compute capability: 6.1)
+WARNING:tensorflow:From C:\Users\bratu\anaconda3\envs\bosch\lib\site-packages\tensorflow\contrib\predictor\saved_model_predictor.py:153: load (from tensorflow.python.saved_model.loader_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+This function will only be available through the v1 compatibility library as tf.compat.v1.saved_model.loader.load or tf.compat.v1.saved_model.load. There will be a new function for importing SavedModels in Tensorflow 2.0.
+acoustic DONE
+DONE 84.6810
+
+(bosch) C:\Users\bratu\Desktop\bosch>
+
+
+
+import os
+import warnings
+import time
+warnings.filterwarnings('ignore')
+from typing import Tuple, Dict
+from concurrent.futures import ThreadPoolExecutor
+
+import librosa
+import numpy as np
+from spleeter.separator import Separator
+from spleeter.audio.adapter import get_default_audio_adapter
+
+
+from constants import genres
+
+
+def handle_song(genre: str, fn: str, result: Dict[str, np.ndarray]):
+    name_no_ext = fn.split('.')[0]
+    x_voc = librosa.feature.melspectrogram(
+        librosa.core.to_mono(result['vocals'].reshape(2, -1)),
+        sr=sr
+    )
+    x_instr = librosa.feature.melspectrogram(
+        librosa.core.to_mono(result['accompaniment'].reshape(2,-1)),
+        sr=sr
+    )
+    np.save(f'processed-instr/{genre}/{name_no_ext}', x_instr)
+    np.save(f'processed-voc/{genre}/{name_no_ext}', x_voc)
+
+
+if __name__ == '__main__':
+    executor = ThreadPoolExecutor(max_workers=4)
+    separator = Separator('spleeter:2stems')
+    audio_loader = get_default_audio_adapter()
+
+    if not os.path.exists('processed-instr'):
+        os.mkdir('processed-instr')
+        os.mkdir('processed-voc')
+        for genre in genres:
+            os.mkdir(f'processed-instr/{genre}')
+            os.mkdir(f'processed-voc/{genre}')
+
+    file_tree = os.walk('data')
+    next(file_tree)  # Skip root directory
+    sr = 22050
+    time_in = time.perf_counter()
+    for root, dirs, files in file_tree:
+        genre=root.split('\\')[1]
+        if genre not in genres:
+            continue
+        for fn in files:
+            waveform, _ = audio_loader.load(f'data/{genre}/{fn}', sample_rate=sr)
+            result = separator.separate(waveform)
+            executor.submit(handle_song, genre, fn, result)
+            # handle_song(genre, fn, result)
+        print(f'{genre} DONE')
+    executor.shutdown()
+    time_out = time.perf_counter()
+    print(f'DONE {time_out - time_in:0.4f}')

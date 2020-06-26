@@ -1,0 +1,135 @@
+(bosch) C:\Users\bratu\Desktop\bosch>python separate.py
+2020-04-17 13:10:50.730589: I tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX AVX2
+2020-04-17 13:10:51.093389: I tensorflow/stream_executor/platform/default/dso_loader.cc:42] Successfully opened dynamic library nvcuda.dll
+2020-04-17 13:10:52.018303: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1640] Found device 0 with properties:
+name: GeForce MX230 major: 6 minor: 1 memoryClockRate(GHz): 1.531
+pciBusID: 0000:02:00.0
+2020-04-17 13:10:52.505173: I tensorflow/stream_executor/platform/default/dlopen_checker_stub.cc:25] GPU libraries are statically linked, skip dlopen check.
+2020-04-17 13:10:52.727953: F tensorflow/stream_executor/lib/statusor.cc:34] Attempting to fetch value instead of handling error Internal: failed to get device attribute 13 for device 0: CUDA_ERROR_UNKNOWN: unknown error
+
+
+
+import os
+import warnings
+warnings.filterwarnings('ignore')
+from typing import Tuple, Dict
+import multiprocessing
+from multiprocessing import Pool
+
+import librosa
+import numpy as np
+from spleeter.separator import Separator
+from spleeter.audio.adapter import get_default_audio_adapter
+
+
+from constants import genres
+
+
+def handle_song(genre: str, fn: str, result: Dict[str, np.ndarray]):
+    name_no_ext = fn.split('.')[0]
+    x_voc = librosa.feature.melspectrogram(
+        librosa.core.to_mono(result['vocals'].reshape(2, -1)),
+        sr=sr
+    )
+    x_instr = librosa.feature.melspectrogram(
+        librosa.core.to_mono(result['accompaniment'].reshape(2,-1)),
+        sr=sr
+    )
+    np.save(f'processed-instr/{genre}/{name_no_ext}', x_instr)
+    np.save(f'processed-voc/{genre}/{name_no_ext}', x_voc)
+    print('WORKER')
+
+
+if __name__ == '__main__':
+    pool = Pool(4)
+    separator = Separator('spleeter:2stems')
+    audio_loader = get_default_audio_adapter()
+
+    if not os.path.exists('processed-instr'):
+        os.mkdir('processed-instr')
+        os.mkdir('processed-voc')
+        for genre in genres:
+            os.mkdir(f'processed-instr/{genre}')
+            os.mkdir(f'processed-voc/{genre}')
+
+    file_tree = os.walk('data')
+    next(file_tree)  # Skip root directory
+    sr = 22050
+    for root, dirs, files in file_tree:
+        genre=root.split('\\')[1]
+        if genre not in genres:
+            continue
+        for fn in files:
+            waveform, _ = audio_loader.load(f'data/{genre}/{fn}', sample_rate=sr)
+            result = separator.separate(waveform)
+            pool.submit(handle_song, (genre, fn, result))
+            print('MAIN')
+    print('DONE')
+
+
+
+
+
+    import os
+    import warnings
+    warnings.filterwarnings('ignore')
+    from typing import Tuple, Dict
+    import multiprocessing as mp
+
+    import librosa
+    import numpy as np
+    from spleeter.separator import Separator
+    from spleeter.audio.adapter import get_default_audio_adapter
+
+
+    from constants import genres
+
+
+    def handle_song(queue: mp.Queue):
+        while True:
+            genre, fn, result = queue.get()
+            name_no_ext = fn.split('.')[0]
+            x_voc = librosa.feature.melspectrogram(
+                librosa.core.to_mono(result['vocals'].reshape(2, -1)),
+                sr=sr
+            )
+            x_instr = librosa.feature.melspectrogram(
+                librosa.core.to_mono(result['accompaniment'].reshape(2,-1)),
+                sr=sr
+            )
+            np.save(f'processed-instr/{genre}/{name_no_ext}', x_instr)
+            np.save(f'processed-voc/{genre}/{name_no_ext}', x_voc)
+            print('WORKER')
+
+
+    if __name__ == '__main__':
+        work_queue = mp.Queue()
+        workers = [mp.Process(target=handle_song, args=(work_queue,)) for _ in range(4)]
+
+        for process in workers:
+            process.start()
+
+        if mp.current_process().name == 'MainProcess':
+            separator = Separator('spleeter:2stems')
+            audio_loader = get_default_audio_adapter()
+
+            if not os.path.exists('processed-instr'):
+                os.mkdir('processed-instr')
+                os.mkdir('processed-voc')
+                for genre in genres:
+                    os.mkdir(f'processed-instr/{genre}')
+                    os.mkdir(f'processed-voc/{genre}')
+
+            file_tree = os.walk('data')
+            next(file_tree)  # Skip root directory
+            sr = 22050
+            for root, dirs, files in file_tree:
+                genre=root.split('\\')[1]
+                if genre not in genres:
+                    continue
+                for fn in files:
+                    waveform, _ = audio_loader.load(f'data/{genre}/{fn}', sample_rate=sr)
+                    result = separator.separate(waveform)
+                    work_queue.put((genre, fn, result))
+                    print('MAIN')
+            print('DONE')

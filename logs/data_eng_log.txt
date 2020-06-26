@@ -1,0 +1,63 @@
+The task at hand is quite difficult: A ls -R | wc -l reaveals 73k songs to
+be classified into 101 labels (not all non-empty). I will attempt some manual
+data engineering by removing false genres: e.g. 'english' or 'french', or
+genres that are too similar - although one could speculate that learning to
+discern between sub-genres might prove quite useful due to the implied difficulty
+that has to be overcame.
+
+
+Removed:
+  - english, german, french, turkish, swedish: Origin of a music track is not indicative of the genre
+  - comedy: Contains stand-up acts rather than music
+  - club: An eclectic mix of genres and remixes -> more of a 'cultural genre'
+  - honky-tonk: Overlaps heavily with 'country', see Wikipedia
+  - happy, sad, summer, romance: Compilations based on emotions/ moods
+  - road-trip: Compilation of other genres
+  - edm: Compilation of other genres
+  - party: Compilation of other genres
+  - ambient: Compilation of other genres
+  - kids: Compilation of other genres
+  - disney: Songs that appear in Disney productions
+  - chicago-house: Local flavour of house genre
+  - piano: Overlaps with 'classical'
+  - dancehall: Mix of reggae and electronic music
+  - detroit-techno: Localization of techno genre
+  - deep-house: Subset of house
+  - post-dubstep: Subgenre of dubstep
+  - j-idol, j-pop, j-rock, j-dance: Localization of independent genres
+  - minimal-techno: Subgenre of techno
+  - hardstyle: "Influences of both hardcore and house music"
+  - hardcore: Subgenre of punk
+  - grindcore: Defined as a mix of 'heavy metal' and 'hardcore'
+  - ska: Precursor of reggae
+  - soul: Subgenre of R&B, influenced by gospel
+  - singer-songwriter: ??
+  - k-pop: Localization of independent genre
+  - groove: Intersects too many genres
+  - indie-pop: Popular indie songs
+  - guitar: instrumental-only version of acoustic
+  - drum-and-bass, trance, idm: electronic subgenre
+  - pagode, forro, sertanejo, spanish: Overlaps with latin, salsa, tango?
+  - metalcore: subgenre metal
+  - latin: Overlaps with latino
+  - black-metal: Subgenre of metal
+  - heavy-metal: Subgenre of metal
+  - alt-rock, psych-rock: Rock subgenre
+  - opera: overlaps with classical
+  - new-age: fuzzy
+  - industrial: Rock and electornic music fusion
+  - iranian: While it could have provided value, reducing number of classes was prefferd. India displays a unique instrumental too.
+  - power-pop: Overlaps with rock, rock-n-roll, rockabilly.
+  - cantopop: Cantonese (Hong-Kong) pop music
+  - mandopop: Chinese pop music
+  - bluegrass: Subgenre of country
+  - punk-rock: Mix of punk and rock.
+  - rock-n-roll: skewed class, small number of inputs
+  - progressive-house: Subgenre of house
+
+Thin Ice:
+  - country: might overlap with folk in a large percent
+  - trip-hop: A mix of hip-hop and electronica. Might provide a curious edge case?
+  - indian: Unique instruments present. Nice edge case? But genres insider are messy: identified EDM, jazz, pop
+  - rockabilly: precursor of rock; might prove distinctive enough
+  - breakbeat: fusion of lectronic and jazz/r&b
