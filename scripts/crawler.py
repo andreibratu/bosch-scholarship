@@ -13,7 +13,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 
 os.environ['SPOTIPY_CLIENT_ID'] = 'aeeb130410d246f0bb6ac236463f69b9'
-os.environ['SPOTIPY_CLIENT_SECRET'] = '167cdf2b758f44ddbf5aad6f25c262ea'
+os.environ['SPOTIPY_CLIENT_SECRET'] = os.environ['spotipy_key']
 
 
 START = 0
